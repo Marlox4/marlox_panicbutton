@@ -1,41 +1,33 @@
-
-
 local cooldown = false
-
-CreateThread(function()
-    while ESX == nil do
-        TriggerEvent(Config.esxgetSharedObjectevent, function(obj) ESX = obj end)
-        Wait(0)
-    end     
-    RegisterNetEvent('marlox_markers')
-    AddEventHandler('marlox_markers', function(Data)
-        SetNewWaypoint(Data.x, Data.y)  
-        local blip = AddBlipForCoord(Data.x, Data.y, Data.z)
-        SetBlipSprite(blip, Config.Panikbutton.BlipID)
-        BeginTextCommandSetBlipName("STRING")
-        AddTextComponentString(_U("PanikbuttonBlipName"))
-        EndTextCommandSetBlipName(blip)
-        Citizen.SetTimeout(Config.Panikbutton.DeletePanikbuttonBlip, function()
-            RemoveBlip(blip)
-        end)
-    end)  
-    RegisterCommand(Config.Panikbutton.Name, function()
-        if not cooldown then
-            cooldown = true
-            SENDBOTTUM()
+RegisterNetEvent('marlox_markers')
+AddEventHandler('marlox_markers', function(coord)
+    SetNewWaypoint(coord.x, coord.y)  
+    local blip = AddBlipForCoord(coord.x, coord.y, coord.z)
+    SetBlipSprite(blip, Config.Panicbutton.BlipID)
+    BeginTextCommandSetBlipName("STRING")
+    AddTextComponentString(_U("PanicButtonBlipName"))
+    EndTextCommandSetBlipName(blip)
+    SetTimeout(Config.Panicbutton.DeletePanikbuttonBlip, function()
+        RemoveBlip(blip)
+    end)
+end)  
+RegisterCommand(Config.Panicbutton.Name, function()
+    if not cooldown then
+        cooldown = true
+        sendButton()
+        CreateThread(function()
             Wait(5 * 60000)
             cooldown = false
-        else
-            ESX.ShowNotification(_U("Panicbuttonalways"))
-        end
-    end)
-
-
-    function SENDBOTTUM()
-        local playerCoords = GetEntityCoords(GetPlayerPed(-1), true)
-        local Data = {x = playerCoords.x,y = playerCoords.y,z = playerCoords.z }
-        TriggerServerEvent("marlox_sendbottum",Data)
+        end)
+    else
+        ESX.ShowNotification(_U("PanicButtonAlways"))
     end
-
-if Config.Panikbutton.KEY ~= false then RegisterKeyMapping(Config.Panikbutton.Name, Config.Panikbutton.Text, 'keyboard', Config.Panikbutton.KEY) end
 end)
+
+
+function sendButton()
+    local playerCoords = GetEntityCoords(PlayerPedId(), true)
+    TriggerServerEvent("marlox_sendButton", playerCoords)
+end
+
+if Config.Panicbutton.KEY ~= false then RegisterKeyMapping(Config.Panicbutton.Name, _U("Press_Panic_Button"), 'keyboard', Config.Panicbutton.KEY) end
